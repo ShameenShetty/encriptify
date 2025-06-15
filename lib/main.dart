@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 
 void main() {
@@ -56,6 +57,7 @@ class MyHomePage extends StatefulWidget {
 
 class _MyHomePageState extends State<MyHomePage> {
   int _counter = 0;
+  int cpuCoreCount = 0;
 
   void _incrementCounter() {
     setState(() {
@@ -66,6 +68,14 @@ class _MyHomePageState extends State<MyHomePage> {
       // called again, and so nothing would appear to happen.
       _counter++;
     });
+  }
+
+  @override
+  void initState() {
+    setState(() {
+      cpuCoreCount = Platform.numberOfProcessors;
+    });
+    super.initState();
   }
 
   @override
@@ -112,6 +122,8 @@ class _MyHomePageState extends State<MyHomePage> {
               '$_counter',
               style: Theme.of(context).textTheme.headlineMedium,
             ),
+            const SizedBox(height: 10),
+            Text('Num of available cores: $cpuCoreCount')
           ],
         ),
       ),
