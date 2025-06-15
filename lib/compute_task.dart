@@ -106,6 +106,9 @@ Future<int> getNumPrimesParallelCompute(List<int> msg) async {
 /// meaning even if we using multiple cores we aren't getting the full benefit
 /// If we decided that the 'weight' of the task is the size of the folder then
 /// we can normalize the distribution and get the benefits of parallelism
+/// 
+/// Dividing a dataset into smaller sets gives us the same issue, we need to
+/// decide what the weight of the smaller subsets are and normalize them
 int getWeight(List<int> range) {
   int weight = 0;
 
