@@ -45,6 +45,8 @@ class _MyHomePageState extends State<MyHomePage> {
     super.initState();
   }
 
+  void getWeightedRanges(int numTasks) {}
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -74,7 +76,6 @@ class _MyHomePageState extends State<MyHomePage> {
           });
 
           Stopwatch stopwatch = Stopwatch()..start();
-          // int result = await compute(runHeavyTaskIsolate, 9000000);
           int end = 90000000;
           int result;
           // result = await getNumPrimesCompute([2, end]);
@@ -83,7 +84,7 @@ class _MyHomePageState extends State<MyHomePage> {
           // print('Time taken for task running on one cpu core - $timeTaken');
 
           Stopwatch stopwatch2 = Stopwatch()..start();
-          int numTasks = cpuCoreCount;
+          int numTasks = 4;
           result = await getNumPrimesInParallelCompute(end, numTasks);
           stopwatch2.stop();
           timeTaken = stopwatch2.elapsedMilliseconds / 1000;

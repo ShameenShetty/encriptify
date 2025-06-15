@@ -1,8 +1,6 @@
-import 'dart:async';
-import 'dart:isolate';
+import 'dart:core';
 
 import 'package:flutter/foundation.dart';
-import 'dart:core';
 
 int get4ThPowerSum(int n) {
   int sum = 0;
@@ -75,6 +73,48 @@ Future<int> getNumPrimesCompute(List<int> msg) async {
 }
 
 Future<int> getNumPrimesParallelCompute(List<int> msg) async {
-  // print('Running task in range $msg');
+  print('Running task in range $msg, weight is ${getWeight(msg)}');
   return await compute(countNumPrimesInRange, msg);
+}
+
+/// If we splitting numbers from 1 to 9 into 3 buckets it becomes
+/// Bucket 1 - 1, 2, 3 → the sum is 6
+/// Bucket 2 - 4, 5, 6 the sum is 15
+/// Bucket 3 - 7, 8, 9 the sum is 24
+/// 
+/// 
+/// Meaning for a very large range we get an issue where one mini-task completes
+/// very quickly and the mini-tasks near the end of the range will take twice
+/// as long
+/// One way we can normalize the 'weight' of the mini-task i.e the amount of 
+/// work is it have a pool and each Isolate takes a chunk from it, once they
+/// are completed with their chunk they take the next chunk from the pool - i.e
+/// dynamic task scheduling
+/// 
+/// Another thing we can do is to generalize the concepts of a 'weight' of a 
+/// task and split the workload based on the weights.
+/// In the 3 buckets given above B2 weight is 2.5x as much as B1, and B3 is 4x
+/// as much
+/// We can distribute the numbers in the buckets to normalize the weights
+/// Bucket 1: 1, 8, 9 → the sum is 18
+/// Bucket 2: 2, 6, 10 → the sum is 18
+/// Bucket 3: 3, 4, 5 → the sum is 12
+/// 
+/// Meaning for other tasks, lets say compressing subfolders, if we had 4 tasks
+/// and 12 folders, we could just divide into sets of 3 folders each but we get
+/// the issue where one set of folders might take much longer to compress 
+/// meaning even if we using multiple cores we aren't getting the full benefit
+/// If we decided that the 'weight' of the task is the size of the folder then
+/// we can normalize the distribution and get the benefits of parallelism
+int getWeight(List<int> range) {
+  int weight = 0;
+
+  int start = range[0];
+  int end = range[1];
+
+  for (int i = start; i <= end; i++) {
+    weight += i;
+  }
+
+  return weight;
 }
