@@ -75,11 +75,20 @@ class _MyHomePageState extends State<MyHomePage> {
 
           Stopwatch stopwatch = Stopwatch()..start();
           // int result = await compute(runHeavyTaskIsolate, 9000000);
-          int end = 900000;
-          getNumPrimesInParallelCompute(end, 3);
-          int result = await getNumPrimesCompute(end);
+          int end = 90000000;
+          int result;
+          // result = await getNumPrimesCompute([2, end]);
           stopwatch.stop();
           double timeTaken = stopwatch.elapsedMilliseconds / 1000;
+          // print('Time taken for task running on one cpu core - $timeTaken');
+
+          Stopwatch stopwatch2 = Stopwatch()..start();
+          int numTasks = cpuCoreCount;
+          result = await getNumPrimesInParallelCompute(end, numTasks);
+          stopwatch2.stop();
+          timeTaken = stopwatch2.elapsedMilliseconds / 1000;
+          print(
+              'Time taken for task running on $numTasks cpu cores - $timeTaken');
 
           setState(() {
             isLoading = false;

@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:isolate';
 
 import 'package:flutter/foundation.dart';
 import 'dart:core';
@@ -16,9 +17,12 @@ Future<int> getComputeSum(int end) async {
   return await compute(get4ThPowerSum, end);
 }
 
-int countNumPrimesInRange(int end) {
+int countNumPrimesInRange(List<int> range) {
   int numPrimes = 0;
-  for (int i = 2; i <= end; i++) {
+  int start = range.first;
+  int end = range.last;
+
+  for (int i = start; i <= end; i++) {
     if (isPrime(i)) numPrimes++;
   }
 
@@ -41,22 +45,36 @@ Future<int> getNumPrimesInParallelCompute(int end, int numTasks) async {
   // -> 1000 / 3 - [0, 333], [334, 666], [667, 1000]
   int start = 0;
 
-  print('Starting completer');
-  final Completer<int> completer = Completer();
-  completer.complete(getNumPrimesCompute(end));
-  print('Finished completer');
+  List<Future<int>> futuresList = [];
 
   for (int i = 1; i < numTasks + 1; i++) {
     int chunkSize = (end / numTasks).floor();
     int chunkEnd = i * chunkSize;
-    print('starting from $start to end at $chunkEnd');
+    var msg = [start, chunkEnd];
+    // print('Task $i is $msg');
+
+    Future<int> futureTask = getNumPrimesParallelCompute(msg);
+    futuresList.add(futureTask);
+
     start = chunkEnd;
   }
 
-  return await 10;
-  // return await compute(countNumPrimesInRange, end);
+  // print(
+  //     'End of generating parallel tasks, num of tasks running in parallel is ${futuresList.length}');
+
+  int sum = 0;
+  List<int> resultList = await Future.wait(futuresList);
+  sum = resultList.reduce((a, b) => a + b);
+
+  // print('Total sum is $sum');
+  return sum;
 }
 
-Future<int> getNumPrimesCompute(int end) async {
-  return await compute(countNumPrimesInRange, end);
+Future<int> getNumPrimesCompute(List<int> msg) async {
+  return await compute(countNumPrimesInRange, msg);
+}
+
+Future<int> getNumPrimesParallelCompute(List<int> msg) async {
+  // print('Running task in range $msg');
+  return await compute(countNumPrimesInRange, msg);
 }
