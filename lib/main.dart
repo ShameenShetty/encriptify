@@ -1,4 +1,6 @@
 import 'dart:io';
+
+import 'package:encriptify/compute_task.dart';
 import 'package:flutter/material.dart';
 
 void main() {
@@ -11,12 +13,12 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Flutter Demo',
+      title: 'Encryptify',
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
         useMaterial3: true,
       ),
-      home: const MyHomePage(title: 'Flutter Demo Home Page'),
+      home: const MyHomePage(title: 'Flutter Encryptify Home Page'),
     );
   }
 }
@@ -31,14 +33,9 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
-  int _counter = 0;
   int cpuCoreCount = 0;
-
-  void _incrementCounter() {
-    setState(() {
-      _counter++;
-    });
-  }
+  String resultText = '', timeTakenText = '';
+  bool isLoading = false;
 
   @override
   void initState() {
@@ -59,21 +56,38 @@ class _MyHomePageState extends State<MyHomePage> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: <Widget>[
-            const Text(
-              'You have pushed the button this many times:',
-            ),
-            Text(
-              '$_counter',
-              style: Theme.of(context).textTheme.headlineMedium,
-            ),
             const SizedBox(height: 10),
-            Text('Num of available cores: $cpuCoreCount')
+            Text('Num of available cores: $cpuCoreCount'),
+            const SizedBox(height: 10),
+            isLoading ? CircularProgressIndicator() : const SizedBox.shrink(),
+            const SizedBox(height: 10),
+            Text('Result: $resultText'),
+            Text('Time Taken: $timeTakenText'),
           ],
         ),
       ),
       floatingActionButton: FloatingActionButton(
-        onPressed: _incrementCounter,
-        tooltip: 'Increment',
+        onPressed: () async {
+          // runHeavyTask(90000000);
+          setState(() {
+            isLoading = true;
+          });
+
+          Stopwatch stopwatch = Stopwatch()..start();
+          // int result = await compute(runHeavyTaskIsolate, 9000000);
+          int end = 900000;
+          getNumPrimesInParallelCompute(end, 3);
+          int result = await getNumPrimesCompute(end);
+          stopwatch.stop();
+          double timeTaken = stopwatch.elapsedMilliseconds / 1000;
+
+          setState(() {
+            isLoading = false;
+            resultText = 'There are $result prime numbers from 1 to $end';
+            timeTakenText = 'It took $timeTaken seconds to calculate task';
+          });
+        },
+        tooltip: 'Run heavy task',
         child: const Icon(Icons.add),
       ),
     );
