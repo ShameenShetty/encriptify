@@ -64,11 +64,11 @@ class _MyHomePageState extends State<MyHomePage> {
       String outputDecryptedFilePath =
           inputPath.replaceAll(RegExp(r'\.\w+$'), '');
 
-      createEncryptedArchive(
-          // createEncryptedArchiveStreamed(
+      // createEncryptedArchive(
+      createEncryptedArchiveInChunks(
           inputFilePath: inputPath,
           outputFilePath: outputFilePath,
-          numChunks: cpuCoreCount - 1);
+          numChunks: cpuCoreCount - 2);
 
       // decompressFile(inputPath, inputPath.replaceAll(RegExp(r'\.\w+$'), ''));
       // compute(compressFileCompute, [inputPath, outputZipPath]);
