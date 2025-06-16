@@ -27,29 +27,48 @@ Future<Map<String, dynamic>> getHeaderInfo(String filePath) async {
   try {
     // Step 0: Check if it is a valid encr file first
     bool isValidFile = await isValidEncrFile(filePath);
-    if (isValidFile) {
-      print('It is a valid encr file');
-      // Step 1: Read the first 4 bytes (Uint32) → header length
-      final lengthBytes = await raf.read(4);
-      if (lengthBytes.length < 4) {
-        throw Exception('File too short to contain header length.');
-      }
-      final headerLength = ByteData.sublistView(lengthBytes).getUint32(0);
-
-      // Step 2: Read the next `headerLength` bytes → header JSON
-      final headerBytes = await raf.read(headerLength);
-      print('Header bytes are $headerBytes');
-      final headerJson = utf8.decode(headerBytes);
-
-      var jsonHeader = jsonDecode(headerJson) as Map<String, dynamic>;
-      print('Header json is $jsonHeader');
-
-      return jsonHeader;
-    } else {
+    if (!isValidFile) {
       print('It is not a ENCR file');
       return {};
     }
+
+    print('It is a valid encr file');
+    print('Retrieving file information...');
+
+    // Step 1: Skip magic (4 bytes) + version (2 bytes) → position = 6
+    await raf.setPosition(6);
+
+    // Step 2: Read the next 4 bytes (header length)
+    final lengthBytes = await raf.read(4);
+    if (lengthBytes.length < 4) {
+      throw Exception('File too short to contain header length.');
+    }
+    final headerLength = ByteData.sublistView(lengthBytes).getUint32(0);
+
+    // Step 3: Read the actual header JSON bytes
+    final headerBytes = await raf.read(headerLength);
+    // print('Header bytes are $headerBytes');
+    final headerJson = utf8.decode(headerBytes);
+
+    var jsonHeader = jsonDecode(headerJson) as Map<String, dynamic>;
+    print('Header json is $jsonHeader');
+
+    return jsonHeader;
   } finally {
     await raf.close();
   }
+}
+
+String formatBytes(int bytes, [int decimals = 2]) {
+  if (bytes < 1024) return '$bytes B';
+  const suffixes = ['KB', 'MB', 'GB', 'TB', 'PB', 'EB'];
+  int i = -1;
+  double size = bytes.toDouble();
+
+  do {
+    size /= 1024;
+    i++;
+  } while (size >= 1024 && i < suffixes.length - 1);
+
+  return '${size.toStringAsFixed(decimals)} ${suffixes[i]}';
 }

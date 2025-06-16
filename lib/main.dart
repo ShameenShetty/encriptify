@@ -1,9 +1,11 @@
 import 'dart:io';
 
 import 'package:encriptify/custom_compression.dart';
+import 'package:encriptify/custom_decompression.dart';
 import 'package:encriptify/util/util.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
+import 'package:path/path.dart' as p;
 
 void main() {
   runApp(const MyApp());
@@ -64,11 +66,23 @@ class _MyHomePageState extends State<MyHomePage> {
       String outputDecryptedFilePath =
           inputPath.replaceAll(RegExp(r'\.\w+$'), '');
 
+      setState(() {
+        isLoading = true;
+        resultText = '';
+        timeTakenText = '';
+      });
+
       // createEncryptedArchive(
-      createEncryptedArchiveInChunks(
+      double timeTaken = await createEncryptedArchiveInChunks(
           inputFilePath: inputPath,
           outputFilePath: outputFilePath,
           numChunks: cpuCoreCount - 2);
+
+      setState(() {
+        resultText = 'Compressed input file "${inputPath.split('/').last}"';
+        timeTakenText = 'It took $timeTaken seconds to compress file';
+        isLoading = false;
+      });
 
       // decompressFile(inputPath, inputPath.replaceAll(RegExp(r'\.\w+$'), ''));
       // compute(compressFileCompute, [inputPath, outputZipPath]);
@@ -121,7 +135,43 @@ class _MyHomePageState extends State<MyHomePage> {
                           print('No file selected.');
                         }
                       },
-                      child: Text('isValidFile'))
+                      child: Text('isValidFile')),
+                  const SizedBox(
+                    width: 10,
+                  ),
+                  ElevatedButton(
+                      onPressed: () async {
+                        FilePickerResult? result =
+                            await FilePicker.platform.pickFiles();
+
+                        if (result != null &&
+                            result.files.single.path != null) {
+                          String inputPath = result.files.single.path!;
+
+                          var headerInfo = await getHeaderInfo(inputPath);
+                          String fileName = headerInfo['filename'];
+                          String fileType = fileName.split('.').last;
+
+                          String dir = p.dirname(inputPath);
+                          String baseName = fileName;
+                          print('dir - $dir, baseName - $baseName');
+                          String outputPath =
+                              p.join(dir, '${baseName}_decompressed.mp4');
+
+                          print('Input path is "$inputPath"');
+                          print('Filename is $fileName, fileType is $fileType');
+
+                          print('Output path is $outputPath');
+
+                          createDecompressedArchiveInChunks(
+                            inputFilePath: inputPath,
+                            outputFilePath: outputPath,
+                          );
+                        } else {
+                          print('No file selected.');
+                        }
+                      },
+                      child: Text('Decompress'))
                 ],
               ),
             ],

@@ -3,6 +3,7 @@ import 'dart:io';
 import 'dart:typed_data';
 import 'dart:async';
 import 'package:archive/archive.dart';
+import 'package:encriptify/util/util.dart';
 import 'package:flutter/foundation.dart';
 import 'package:path/path.dart' as p;
 
@@ -93,7 +94,7 @@ Stream<Uint8List> chunkedStream(Stream<List<int>> input, int chunkSize) async* {
   }
 }
 
-Future<void> createEncryptedArchiveInChunks({
+Future<double> createEncryptedArchiveInChunks({
   required String inputFilePath,
   required String outputFilePath,
   required int numChunks,
@@ -123,6 +124,8 @@ Future<void> createEncryptedArchiveInChunks({
   int numMainChunks = (fileLength / chunkLoadSize).ceil();
 
   int pos = 0;
+  print(
+      'Starting compression of input file of size ${formatBytes(fileLength)}');
   await for (final chunk in chunkedStream(inputStream, chunkLoadSize)) {
     final subChunkSize =
         (chunk.length / numChunks).ceil(); // ✅ Now chunk is Uint8List
@@ -130,7 +133,7 @@ Future<void> createEncryptedArchiveInChunks({
     // print('sub chunk size is $subChunkSize');
     print('');
     print(
-        "Compressing main chunk ${pos + 1}/$numMainChunks of size: $subChunkSize");
+        "Compressing main chunk ${pos + 1}/$numMainChunks of size: ${formatBytes(subChunkSize)}");
 
     final List<Future<Uint8List>> futures = [];
 
@@ -180,4 +183,6 @@ Future<void> createEncryptedArchiveInChunks({
   stopwatch.stop();
   print('Compressed encrypted archive: $outputFilePath');
   print('Time taken: ${stopwatch.elapsedMilliseconds / 1000} seconds');
+
+  return stopwatch.elapsedMilliseconds / 1000;
 }
