@@ -1,6 +1,8 @@
 import 'dart:io';
 
 import 'package:encriptify/compute_task.dart';
+import 'package:encriptify/custom_compression.dart';
+import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 
 void main() {
@@ -45,7 +47,45 @@ class _MyHomePageState extends State<MyHomePage> {
     super.initState();
   }
 
-  void getWeightedRanges(int numTasks) {}
+  Future<void> pickAndCompressFile() async {
+    // Step 1: Pick a file
+    FilePickerResult? result = await FilePicker.platform.pickFiles();
+
+    if (result != null && result.files.single.path != null) {
+      String inputPath = result.files.single.path!;
+      String fileName = result.files.single.name;
+
+      // Step 2: Choose output path (e.g., same dir, new name)
+      String outputZipPath = inputPath.replaceAll(RegExp(r'\.\w+$'), '.zip');
+      String outputFilePath = inputPath.replaceAll(RegExp(r'\.\w+$'), '.encr');
+
+      // TODO we should get the original file name from the header info and
+      // set the output file name as that
+      String outputDecryptedFilePath =
+          inputPath.replaceAll(RegExp(r'\.\w+$'), '');
+
+      // Step 3: Compress
+      // compressFile(inputPath, outputZipPath);
+
+      // getHeaderInfo(inputPath);
+      // decompressEncryptedArchive(
+      //     inputFilePath: inputPath, outputFilePath: outputDecryptedFilePath);
+
+      createEncryptedArchive(
+          // createEncryptedArchiveStreamed(
+          inputFilePath: inputPath,
+          outputFilePath: outputFilePath,
+          numChunks: cpuCoreCount - 1);
+
+      // decompressFile(inputPath, inputPath.replaceAll(RegExp(r'\.\w+$'), ''));
+      // compute(compressFileCompute, [inputPath, outputZipPath]);
+      // compressFileStreamed(inputPath, outputZipPath);
+      print('Starting compression');
+      // print('Starting compression of file: $outputZipPath');
+    } else {
+      print('No file selected.');
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -55,49 +95,27 @@ class _MyHomePageState extends State<MyHomePage> {
         title: Text(widget.title),
       ),
       body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: <Widget>[
-            const SizedBox(height: 10),
-            Text('Num of available cores: $cpuCoreCount'),
-            const SizedBox(height: 10),
-            isLoading ? CircularProgressIndicator() : const SizedBox.shrink(),
-            const SizedBox(height: 10),
-            Text('Result: $resultText'),
-            Text('Time Taken: $timeTakenText'),
-          ],
+        child: SingleChildScrollView(
+          scrollDirection: Axis.vertical,
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: <Widget>[
+              const SizedBox(height: 10),
+              Text('Num of available cores: $cpuCoreCount'),
+              const SizedBox(height: 10),
+              isLoading ? CircularProgressIndicator() : const SizedBox.shrink(),
+              const SizedBox(height: 10),
+              Text('Result: $resultText'),
+              Text('Time Taken: $timeTakenText'),
+            ],
+          ),
         ),
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () async {
-          // runHeavyTask(90000000);
-          setState(() {
-            isLoading = true;
-          });
-
-          Stopwatch stopwatch = Stopwatch()..start();
-          int end = 90000000;
-          int result;
-          // result = await getNumPrimesCompute([2, end]);
-          stopwatch.stop();
-          double timeTaken = stopwatch.elapsedMilliseconds / 1000;
-          // print('Time taken for task running on one cpu core - $timeTaken');
-
-          Stopwatch stopwatch2 = Stopwatch()..start();
-          int numTasks = 4;
-          result = await getNumPrimesInParallelCompute(end, numTasks);
-          stopwatch2.stop();
-          timeTaken = stopwatch2.elapsedMilliseconds / 1000;
-          print(
-              'Time taken for task running on $numTasks cpu cores - $timeTaken');
-
-          setState(() {
-            isLoading = false;
-            resultText = 'There are $result prime numbers from 1 to $end';
-            timeTakenText = 'It took $timeTaken seconds to calculate task';
-          });
+          pickAndCompressFile();
         },
-        tooltip: 'Run heavy task',
+        tooltip: 'Compress file',
         child: const Icon(Icons.add),
       ),
     );
