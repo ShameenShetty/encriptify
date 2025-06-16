@@ -1,7 +1,7 @@
 import 'dart:io';
 
-import 'package:encriptify/compute_task.dart';
 import 'package:encriptify/custom_compression.dart';
+import 'package:encriptify/util/util.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 
@@ -64,13 +64,6 @@ class _MyHomePageState extends State<MyHomePage> {
       String outputDecryptedFilePath =
           inputPath.replaceAll(RegExp(r'\.\w+$'), '');
 
-      // Step 3: Compress
-      // compressFile(inputPath, outputZipPath);
-
-      // getHeaderInfo(inputPath);
-      // decompressEncryptedArchive(
-      //     inputFilePath: inputPath, outputFilePath: outputDecryptedFilePath);
-
       createEncryptedArchive(
           // createEncryptedArchiveStreamed(
           inputFilePath: inputPath,
@@ -107,6 +100,30 @@ class _MyHomePageState extends State<MyHomePage> {
               const SizedBox(height: 10),
               Text('Result: $resultText'),
               Text('Time Taken: $timeTakenText'),
+              const SizedBox(height: 20),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  ElevatedButton(
+                      onPressed: () async {
+                        FilePickerResult? result =
+                            await FilePicker.platform.pickFiles();
+
+                        if (result != null &&
+                            result.files.single.path != null) {
+                          String inputPath = result.files.single.path!;
+
+                          var jsonHeader = await getHeaderInfo(inputPath);
+                          print('Getting header information');
+                          print('File json header is $jsonHeader');
+                          // print('Starting compression of file: $outputZipPath');
+                        } else {
+                          print('No file selected.');
+                        }
+                      },
+                      child: Text('isValidFile'))
+                ],
+              ),
             ],
           ),
         ),
